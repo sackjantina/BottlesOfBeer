@@ -2,9 +2,10 @@ use std::io;
 use std::time;
 use std::thread;
 use rand::Rng;
+use std::fs::File;
 
 trait Lyrics {
-    fn lines(&self, cap:bool) -> Self;
+    fn lines(&self, cap:bool, file: &mut File) -> Self;
     fn print(&self, increasing:bool, step:u32) -> Self;
     fn screen(&self) -> Self;
     fn mid(&self) -> Self;
@@ -12,7 +13,7 @@ trait Lyrics {
 }
 
 impl Lyrics for u32 {
-    fn lines(&self, cap:bool) -> u32 {
+    fn lines(&self, cap:bool, file: &mut File) -> u32 {
         match *self {
             0 => print!("{}o more lines of text", if cap {"N"} else {"n"}),
             1 => print!("{} line of text", self),
@@ -25,7 +26,7 @@ impl Lyrics for u32 {
         match *self {
             0 => { print!("Go to the store and buy some more, "); 99 }
             _ => { print!("Print it out, stand up and shout, "); 
-		    if increasing {*self + step} else {*self - step} }
+                if increasing {*self + step} else {*self - step} }
         }
     }
 
@@ -56,19 +57,21 @@ fn main() {
     stdin.read_line(&mut buffer);
     let max_lines:u32 = buffer.trim().parse().unwrap();
 
+    let mut fileout = File::create("out.txt").expect("error creating file");
+
     let second = time::Duration::new(1,0);
 
     if increasing {
         for i in (1..max_lines).step_by(step.try_into().unwrap()) {
-            i.lines(true).screen().mid().lines(false).end();
-            i.print(increasing, step).lines(false).screen().end();
+            i.lines(true, &mut fileout).screen().mid().lines(false, &mut fileout).end();
+            i.print(increasing, step).lines(false, &mut fileout).screen().end();
             println!();
             thread::sleep(second);
         }
     } else {
         for i in (0..max_lines).step_by(step.try_into().unwrap()).rev() {
-            i.lines(true).screen().mid().lines(false).end();
-            i.print(increasing, step).lines(false).screen().end();
+            i.lines(true, &mut fileout).screen().mid().lines(false, &mut fileout).end();
+            i.print(increasing, step).lines(false, &mut fileout).screen().end();
             println!();
             thread::sleep(second);
         }
