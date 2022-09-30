@@ -4,6 +4,8 @@ use std::thread;
 use rand::Rng;
 use std::fs::File;
 use std::io::Write;
+use std::ops::Range;
+use std::iter::StepBy;
 
 trait Lyrics {
     // Functions to print to screen
@@ -85,46 +87,62 @@ impl Lyrics for u32 {
     }
 }
 
-fn print_to_screen() {
-
+fn print_to_screen(range:StepBy<Range<u32>>, increasing:bool, step:u32) {
+    for i in range {
+        i.lines(true).screen().mid().lines(false).end();
+        i.print(increasing, step).lines(false).screen().end();
+        println!();
+        thread::sleep(time::Duration::new(1,0));
+    }
 }
 
-fn write_to_file(i:u32, file: &mut File, step: u32) {
-    i.lines_file(true, file).screen_file(file).mid_file(file).lines_file(false, file).end_file(file);
-    i.print_file(true, step, file).lines_file(false, file).screen_file(file).end_file(file);
-    writeln!(file);
+fn write_to_file(range:StepBy<std::ops::Range<u32>>, file: &mut File, step: u32) {
+    for i in range {
+        i.lines_file(true, file).screen_file(file).mid_file(file).lines_file(false, file).end_file(file);
+        i.print_file(true, step, file).lines_file(false, file).screen_file(file).end_file(file);
+        writeln!(file);
+    }
 }
 
 fn main() {
     let mut rng = rand::thread_rng();
     let step:u32 = rng.gen_range(1..=10);
     let increasing = true;
-    //let max_lines = 500;
 
     let mut buffer = String::new();
     println!("How many lines?");
     io::stdin().read_line(&mut buffer).expect("error reading input");
     let max_lines:u32 = buffer.trim().parse().unwrap();
 
+    let nums1 = (1..max_lines).step_by(step.try_into().unwrap());
+    let nums2 = (1..max_lines).step_by(step.try_into().unwrap());
+
     let mut fileout = File::create("out.txt").expect("error creating file");
 
-    let second = time::Duration::new(1,0);
+    let handle_print = thread::spawn(move || {
+            print_to_screen(nums1, increasing, step);
+            eprintln!("Printing Finished");
+    });
 
-    if increasing {
-        for i in (1..max_lines).step_by(step.try_into().unwrap()) {
-            i.lines(true).screen().mid().lines(false).end();
-            i.print(increasing, step).lines(false).screen().end();
-            println!();
-            write_to_file(i, &mut fileout, step);
-            thread::sleep(second);
-        }
+    let handle_write = thread::spawn(move || {
+            write_to_file(nums2, &mut fileout, step);
+            eprintln!("Writing Finished");
+    });
+
+    handle_print.join();
+    handle_write.join();
+
+    /* if increasing {
+        print_to_screen(nums.clone(), increasing, step);
+        write_to_file(nums.clone(), &mut fileout, step);
+
     } else {
         for i in (0..max_lines).step_by(step.try_into().unwrap()).rev() {
             i.lines(true).screen().mid().lines(false).end();
             i.print(increasing, step).lines(false).screen().end();
             println!();
-            write_to_file(i, &mut fileout, step);
-            thread::sleep(second);
+            write_to_file(nums, &mut fileout, step);
+            //thread::sleep(second);
         }
-    }
+    } */
 }

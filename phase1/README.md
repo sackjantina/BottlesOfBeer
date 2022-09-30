@@ -10,14 +10,14 @@ Jack Santina 235580 Pat Ryan 235496
 - [x] F. Pause 1 second between printing every stanza
 - [ ] G. Print each number into is fully factored prime factors
 - [x] H. Write to "out.txt" file and change lyrics to reflect that.
-- [ ] I. Print to screen and write to file concurrently in separate processes or threads. Announce finishing to stderr. Thread writing to file should not pause between each stanza.
+- [x] I. Print to screen and write to file concurrently in separate processes or threads. Announce finishing to stderr. Thread writing to file should not pause between each stanza.
 
 ### Compiling:
 To compile, type the command:
 ```
 cargo build
-
 ```
+
 To run, type the command (note running also compiles):
 ```
 cargo run
